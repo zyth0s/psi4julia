@@ -98,7 +98,7 @@ please see our [contributor guidelines](https://github.com/psi4/psi4numpy/blob/m
         ```
     2. Point PyCall to Python installation with Psi4 and rebuild PyCall
         ```
-        julia> ENV["PYTHON"] = ~/miniconda3/envs/p4env/bin/python
+        julia> ENV["PYTHON"] = joinpath(ENV["HOME"], "miniconda3/envs/p4env/bin/python")
         julia> Pkg.build("PyCall")
         ```
     3. Quit Julia session.
