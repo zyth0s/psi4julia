@@ -1,19 +1,19 @@
-#<p align="center">
-#<br>
-#<img src="media/psi4numpybanner.png" alt="Psi4NumPy banner logo" height=200> <br>
-#<a href="https://zenodo.org/badge/latestdoi/22622192"> <img src="https://zenodo.org/badge/22622192.svg" /></a>
-#<a href="https://travis-ci.org/psi4/psi4numpy"><img src="https://travis-ci.org/psi4/psi4numpy.svg?branch=master"></a>
-#<a href="https://codecov.io/gh/psi4/psi4numpy"> <img src="https://codecov.io/gh/psi4/psi4numpy/branch/master/graph/badge.svg" /></a>
-#<a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD%203--Clause-blue.svg" /></a>
-#<br>
-#<a href="#"> <img src="https://img.shields.io/github/release/psi4/psi4numpy.svg" /></a>
-#<a href="#"> <img src="https://img.shields.io/github/commits-since/psi4/psi4numpy/latest.svg" /></a>
-#<a href="#"> <img src="https://img.shields.io/github/release-date/psi4/psi4numpy.svg" /></a>
-#<a href="#"> <img src="https://img.shields.io/github/commit-activity/y/psi4/psi4numpy.svg" /></a>
-#<br>
-#</p>
-
-#---
+<!--
+<p align="center">
+<br>
+<img src="media/psi4numpybanner.png" alt="Psi4NumPy banner logo" height=200> <br>
+<a href="https://zenodo.org/badge/latestdoi/22622192"> <img src="https://zenodo.org/badge/22622192.svg" /></a>
+<a href="https://travis-ci.org/psi4/psi4numpy"><img src="https://travis-ci.org/psi4/psi4numpy.svg?branch=master"></a>
+<a href="https://codecov.io/gh/psi4/psi4numpy"> <img src="https://codecov.io/gh/psi4/psi4numpy/branch/master/graph/badge.svg" /></a>
+<a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD%203--Clause-blue.svg" /></a>
+<br>
+<a href="#"> <img src="https://img.shields.io/github/release/psi4/psi4numpy.svg" /></a>
+<a href="#"> <img src="https://img.shields.io/github/commits-since/psi4/psi4numpy/latest.svg" /></a>
+<a href="#"> <img src="https://img.shields.io/github/release-date/psi4/psi4numpy.svg" /></a>
+<a href="#"> <img src="https://img.shields.io/github/commit-activity/y/psi4/psi4numpy.svg" /></a>
+<br>
+</p>
+-->
 
 ## This is a Julia version of psi4numpy.
 Progress:
