@@ -1,19 +1,19 @@
-<p align="center">
-<br>
-<img src="media/psi4numpybanner.png" alt="Psi4NumPy banner logo" height=200> <br>
-<a href="https://zenodo.org/badge/latestdoi/22622192"> <img src="https://zenodo.org/badge/22622192.svg" /></a>
-<a href="https://travis-ci.org/psi4/psi4numpy"><img src="https://travis-ci.org/psi4/psi4numpy.svg?branch=master"></a>
-<a href="https://codecov.io/gh/psi4/psi4numpy"> <img src="https://codecov.io/gh/psi4/psi4numpy/branch/master/graph/badge.svg" /></a>
-<a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD%203--Clause-blue.svg" /></a>
-<br>
-<a href="#"> <img src="https://img.shields.io/github/release/psi4/psi4numpy.svg" /></a>
-<a href="#"> <img src="https://img.shields.io/github/commits-since/psi4/psi4numpy/latest.svg" /></a>
-<a href="#"> <img src="https://img.shields.io/github/release-date/psi4/psi4numpy.svg" /></a>
-<a href="#"> <img src="https://img.shields.io/github/commit-activity/y/psi4/psi4numpy.svg" /></a>
-<br>
-</p>
+#<p align="center">
+#<br>
+#<img src="media/psi4numpybanner.png" alt="Psi4NumPy banner logo" height=200> <br>
+#<a href="https://zenodo.org/badge/latestdoi/22622192"> <img src="https://zenodo.org/badge/22622192.svg" /></a>
+#<a href="https://travis-ci.org/psi4/psi4numpy"><img src="https://travis-ci.org/psi4/psi4numpy.svg?branch=master"></a>
+#<a href="https://codecov.io/gh/psi4/psi4numpy"> <img src="https://codecov.io/gh/psi4/psi4numpy/branch/master/graph/badge.svg" /></a>
+#<a href="https://opensource.org/licenses/BSD-3-Clause"><img src="https://img.shields.io/badge/License-BSD%203--Clause-blue.svg" /></a>
+#<br>
+#<a href="#"> <img src="https://img.shields.io/github/release/psi4/psi4numpy.svg" /></a>
+#<a href="#"> <img src="https://img.shields.io/github/commits-since/psi4/psi4numpy/latest.svg" /></a>
+#<a href="#"> <img src="https://img.shields.io/github/release-date/psi4/psi4numpy.svg" /></a>
+#<a href="#"> <img src="https://img.shields.io/github/commit-activity/y/psi4/psi4numpy.svg" /></a>
+#<br>
+#</p>
 
----
+#---
 
 ## This is a Julia version of psi4numpy.
 Progress:
@@ -48,7 +48,7 @@ please see our [contributor guidelines](https://github.com/psi4/psi4numpy/blob/m
 ### Getting Started
 
 1. Obtain required software
-    1. [Psi4NumPy](https://github.com/psi4/psi4numpy) (clone this repository; no install available)
+    1. [Psi4Julia](https://github.com/zyth0s/psi4julia) (clone this repository; no install available)
     2. [Psi4](http://psicode.org/psi4manual/1.1/build_obtaining.html)
         * Option 1 (easiest): [Download installer](http://vergil.chemistry.gatech.edu/psicode-download/1.1.html) and install according to [instructions](http://psicode.org/psi4manual/1.1/conda.html#how-to-install-a-psi4-binary-with-the-psi4conda-installer-command-line).
           ```
@@ -91,10 +91,22 @@ please see our [contributor guidelines](https://github.com/psi4/psi4numpy/blob/m
         >>> export PATH=/path/to/dir/of/python/interpreter/against/which/psi4/compiled:$PATH
         >>> export PYTHONPATH=/path/to/dir/of/psi4/core-dot-so:$PYTHONPATH
         ```
-3. Run scripts as conventional Python scripts
-    * Example: Run `DF-MP2.py`
+3. Set up Julia
+    1. Install PyCall from Julia REPL
         ```
-        >>> python psi4numpy/Moller-Plesset/DF-MP2.py
+        julia> using Pkg; Pkg.add("PyCall")
+        ```
+    2. Point PyCall to Python installation with Psi4 and rebuild PyCall
+        ```
+        julia> ENV["PYTHON"] = ~/miniconda3/envs/p4env/bin/python
+        julia> Pkg.build("PyCall")
+        ```
+    3. Quit Julia session.
+
+4. Run scripts as conventional Julia scripts
+    * Example: Run `DF-MP2.jl`
+        ```
+        >>> julia psi4numpy/Tutorials/01_Psi4Julia-Basics/1a_Getting-Started.py
         ```
 
 New users can follow the
