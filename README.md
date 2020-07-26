@@ -20,6 +20,7 @@ Progress:
 - [x] Tutorial 1a
 - [x] Tutorial 1b
 - [x] Tutorial 1c
+- [x] Tutorial 1d
 
 ### Overview
 
