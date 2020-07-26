@@ -79,6 +79,7 @@ please see our [contributor guidelines](https://github.com/psi4/psi4numpy/blob/m
     3. [Python](https://python.org) 3.6+ (incl. w/ Psi4 Options 1 & 2)
     4. [NumPy](http://www.numpy.org) 1.7.2+ (incl. w/ Psi4 Options 1 & 2)
     5. [Scipy](https://scipy.org) 0.13.0+
+    6. [Julia](https://julialang.org) 1.4.2    
 2. Enable Psi4 & PsiAPI (if Psi4 was built from source)
    1. Find appropriate paths
         ```
