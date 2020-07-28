@@ -47,26 +47,28 @@
 #
 # Note that this notation is signified by the use of bold characters to denote matrices and consecutive matrices next to each other imply a chain of matrix multiplications! 
 
-# ## Einsum
+# ## Tensor Operations
 #
-# To perform most operations we turn to tensor packages (here we use [NumPy's einsum function](https://docs.scipy.org/doc/numpy/reference/generated/numpy.einsum.html) but there are similar Julia packages, Einsum.jl, Tullio.jl, ..., that might be explored in future revisions). Those allow Einsten convention as an input. In addition to being much easier to read, manipulate, and change, it is usually more efficient than our loop implementation.
-#
-# To begin let us consider the construction of the following tensor (which you may recognize):
-# $$G_{pq} = 2.0 * I_{pqrs} D_{rs} - 1.0 * I_{prqs} D_{rs}$$ 
-#
+# To perform most operations we turn to tensor packages (here we use [TensorOperations.jl](https://github.com/Jutho/TensorOperations.jl)). Those allow Einstein convention as an input. In addition to being much easier to read, manipulate, and change, it has (usually) optimal performance.
 # First let us import our normal suite of modules:
 
 using PyCall: pyimport
 psi4 = pyimport("psi4")
 np   = pyimport("numpy")
+using TensorOperations: @tensor
 
-# We can then use conventional Julia loops and einsum to perform the same task. Keep size relatively small as these 4-index tensors grow very quickly in size.
+# We can then use conventional Julia loops or `@tensor` to perform the same task. 
 
-using BenchmarkTools: @btime
+using BenchmarkTools: @btime, @belapsed
 
-# With `@btime` we measure execution time several times to have more reliable timings than with `@time` (single execution).
+# With `@btime`/`@belapsed` we average time over several executions to have more reliable timings than `@time`/`@elapsed` (single execution).
 
-# <font color="red">**WARNING: We are using Julia's global variables, and those are known to be less efficient than local variables. It is better to wrap code inside function. For large computations we do a single execution so the timings will also include compilation time. Succesive runs are faster.**</font>
+# <font color="red">**WARNING: We are using Julia's global variables, and those are known to be less efficient than local variables. It is better to wrap code inside function.**</font>
+
+# To begin let us consider the construction of the following tensor (which you may recognize):
+# $$G_{pq} = 2.0 * I_{pqrs} D_{rs} - 1.0 * I_{prqs} D_{rs}$$ 
+#
+# Keep size relatively small as these 4-index tensors grow very quickly in size.
 
 # +
 dims = 20
@@ -88,12 +90,8 @@ Gloop = @btime begin
 end
 
 # Build the Fock matrix using einsum, while keeping track of time
-println("Time for einsum G build:")
-G = @btime begin
-   J = np.einsum("pqrs,rs", I, D, optimize=true)
-   K = np.einsum("prqs,rs", I, D, optimize=true)
-   G = 2J - K
-end
+println("Time for @tensor G build:")
+G = @btime @tensor G[p,q] := 2I[p,q,r,s] * D[r,s] - I[p,r,q,s] * D[r,s]
 
 # Make sure the correct answer is obtained
 println("Loop and einsum builds of the Fock matrix match?    ", np.allclose(G, Gloop))
@@ -102,17 +100,18 @@ println()
 #println("G builds with einsum are $(g_loop_time/einsum_time) times faster than Julia loops!")
 # -
 
-# As you can see, the einsum function can be considerably faster than the plain Julia loops.
+# As you can see, the `@tensor` macro can be considerably faster than plain Julia loops.
 
 # ## Matrix multiplication chain/train
 #
 # Now let us turn our attention to a more canonical matrix multiplication example such as:
 # $$D_{il} = A_{ij} B_{jk} C_{kl}$$
 #
-# We could perform this operation using einsum; however, matrix multiplication is an extremely common operation in all branches of linear algebra. Thus, these functions have been optimized to be more efficient than the `einsum` function. The matrix product will explicitly compute the following operation:
+# Matrix multiplication is an extremely common operation in all branches of linear algebra. Thus, these functions have been optimized to be extremely efficient. `@tensor` uses it. The matrix product will explicitly compute the following operation:
 # $$C_{ij} = A_{ij} * B_{ij}$$
 #
-# This is Julia's matrix multiplication method `*`.
+#
+# This is Julia's matrix multiplication method `*` for matrices.
 
 # +
 dims = 200
@@ -122,50 +121,48 @@ C = rand(dims, dims)
 
 # First compute the pair product
 tmp_dot = A * B
-tmp_einsum = np.einsum("ij,jk->ik", A, B, optimize=true)
-println("Pair product allclose? ", np.allclose(tmp_dot, tmp_einsum))
+@tensor tmp_tensor[i,k] := A[i,j] * B[j,k]
+println("Pair product allclose? ", np.allclose(tmp_dot, tmp_tensor))
 # -
 
-# Now that we have proved exactly what the dot product does, let us consider the full chain and do a timing comparison:
+# Now that we have proved exactly what `*` product does, let us consider the full chain and do a timing comparison:
+
+D_dot = A * B * C
+@tensor D_tensor[i,l] := A[i,j] * B[j,k] * C[k,l]
+println("Chain multiplication allclose? ", np.allclose(D_dot, D_tensor))
 
 # +
-D_dot = A * B * C
-D_einsum = np.einsum("ij,jk,kl->il", A, B, C, optimize=true)
-println("Chain multiplication allclose? ", np.allclose(D_dot, D_einsum))
-
 println()
 println("* time:")
 @btime A * B * C
 
-println("np.einsum time")
-# no optimization here for illustrative purposes!
-@btime np.einsum("ij,jk,kl->il", A, B, C);
+println()
+println("@tensor time:")
+@btime @tensor D_tensor[i,l] := A[i,j] * B[j,k] * C[k,l];
 # -
 
-# On most machines the `*` times are roughly ~2,000 times faster. The reason is twofold:
-#  - The `*` routines typically call [Basic Linear Algebra Subprograms (BLAS)](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms). The BLAS routines are highly optimized and threaded versions of the code.
-#  - The `np.einsum` code will not factorize the operation by default; Thus, the overall cost is ${\cal O}(N^4)$ (as there are four indices) rather than the factored $(\bf{A B}) \bf{C}$ which runs ${\cal O}(N^3)$.
+# Both have similar timings, and both call [Basic Linear Algebra Subprograms (BLAS)](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms). The BLAS routines are highly optimized and threaded versions of the code.
+#  - The `@tensor` code will factorize the operation by default; Thus, the overall cost is not ${\cal O}(N^4)$ (as there are four indices) rather it is the factored $(\bf{A B}) \bf{C}$ which runs ${\cal O}(N^3)$.
 #  
-# The first issue is difficult to overcome; however, the second issue can be resolved by the following:
+# Therefore you do not need to factorize the expression yourself (sometimes you might need):
 
-println("np.einsum factorized time:")
-# no optimization here for illustrative purposes!
-@btime np.einsum("ik,kl->il", np.einsum("ij,jk->ik", A, B), C);
+println("@tensor factorized time:")
+@btime @tensor begin
+   tmp[i,k]  := A[i,j] * B[j,k]
+   tmp2[i,l] := tmp[i,k] * C[k,l]
+end
+nothing
 
-# On most machines the factorized `einsum` expression is only ~10 times slower than `*`. While a massive improvement, this is a clear demonstration the BLAS usage is usually recommended. Thankfully, in Julia its syntax is very clear. The Psi4Julia project tends to lean toward usage of tensor pacakges but if Julia's built-in matrix multiplication is faster we would use it.
-#
-# Starting in NumPy 1.12, the [einsum function](https://docs.scipy.org/doc/numpy/reference/generated/numpy.einsum.html) has a `optimize` flag which will automatically factorize the einsum code for you using a greedy algorithm, leading to considerable speedups at almost no cost:
-
-println("np.einsum optimized time")
-@btime np.einsum("ij,jk,kl->il", A, B, C, optimize=true);
-
-# In this example, using `optimize=true` for automatic factorization is "only" 50% slower than `*`. Furthermore, it is ~8 times faster than factorizing the expression by hand, which represents a very good trade-off between speed and readability. When unsure, `optimize=true` is strongly recommended. The real value of tensor packages will become tangible for more complicated expressions.
+# On most machines the three have similar timings. The BLAS usage is usually recommended. Thankfully, in Julia its syntax is very clear. The Psi4Julia project tends to lean toward usage of tensor packages but if Julia's built-in matrix multiplication is significantly cleaner/faster we would use it. The real value of tensor packages will become tangible for more complicated expressions.
 
 # ## Complicated tensor manipulations
 # Let us consider a popular index transformation example:
 # $$M_{pqrs} = C_{pi} C_{qj} I_{ijkl} C_{rk} C_{sl}$$
 #
-# Here, a naive `einsum` call would scale like $\mathcal{O}(N^8)$ which translates to an extremely costly computation for all but the smallest $N$.
+# Here, a naive loop implementation would scale like $\mathcal{O}(N^8)$ which translates to an extremely costly computation for all but the smallest $N$. A smarter implementation (factorizing the whole expression) would scale
+# like $\mathcal{O}(N^5)$.
+
+# <font color="red">**WARNING: First execution is slow because of compilation time. Successive are more honest to the running time.**</font>
 
 # +
 # Grab orbitals
@@ -175,33 +172,26 @@ dims = 15
 C = rand(dims, dims)
 I = rand(dims, dims, dims, dims)
 
-# Numpy's einsum N^8 transformation.
-print("\nStarting np.einsum N^8 transformation...")
-# no optimization here for illustrative purposes!
-n8_time = @elapsed MO_n8 = np.einsum("pI,qJ,pqrs,rK,sL->IJKL", C, C, I, C, C)
+# @tensor full transformation.
+print("\nStarting @tensor full transformation...")
+n8_time = @elapsed @tensor MO_n8[I,J,K,L] := C[p,I] * C[q,J] * I[p,q,r,s] * C[r,K] * C[s,L]
 print("complete in $n8_time s\n")
 
-# Numpy's einsum N^5 transformation.
-print("\nStarting np.einsum N^5 transformation with einsum ... ")
-n5_time = @elapsed begin
-   # no optimization here for illustrative purposes!
-   MO_n5 = np.einsum("pA,pqrs->Aqrs", C, I)
-   MO_n5 = np.einsum("qB,Aqrs->ABrs", C, MO_n5)
-   MO_n5 = np.einsum("rC,ABrs->ABCs", C, MO_n5)
-   MO_n5 = np.einsum("sD,ABCs->ABCD", C, MO_n5)
+# @tensor factorized N^5 transformation.
+print("\nStarting @tensor factorized N^5 transformation with einsum ... ")
+n5_time = @elapsed @tensor begin
+   MO_n5[A,q,r,s] := C[p,A] * I[p,q,r,s]
+   MO_n5[A,B,r,s] := C[q,B] * MO_n5[A,q,r,s]
+   MO_n5[A,B,C,s] := C[r,C] * MO_n5[A,B,r,s]
+   MO_n5[A,B,C,D] := C[s,D] * MO_n5[A,B,C,s]
 end
 print("complete in $n5_time s \n")
-println("N^5 is $(n8_time/n5_time) faster than N^8 algorithm!")
-println("Allclose? ", np.allclose(MO_n8, MO_n5))
-
-# Numpy's einsum optimized transformation.
-print("\nNow np.einsum optimized transformation... ")
-n8_time_opt = @elapsed MO_n8 = np.einsum("pI,qJ,pqrs,rK,sL->IJKL", C, C, I, C, C, optimize=true)
-print("complete in $n8_time_opt s \n")
+println("  @tensor factorized is $(n8_time/n5_time) faster than full @tensor algorithm!")
+println("  Allclose? ", np.allclose(MO_n8, MO_n5))
 
 # Julia's GEMM N^5 transformation.
 # Try to figure this one out!
-print("\nStarting Julia's N^5 transformation with * ... ")
+print("\nStarting Julia's factorized transformation with * ... ")
 dgemm_time = @elapsed begin
    MO = C' * reshape(I, dims, :)
    MO = reshape(MO, :, dims) * C
@@ -212,11 +202,11 @@ dgemm_time = @elapsed begin
    MO = permutedims(reshape(MO, dims, dims, dims, dims),(2, 1, 4, 3))
 end
 print("complete in $dgemm_time s \n")
-println("Allclose? ", np.allclose(MO_n8, MO))
-println("N^5 is $(n8_time/dgemm_time) faster than N^8 algorithm!")
+println("  * factorized is $(n8_time/dgemm_time) faster than full @tensor algorithm!")
+println("  Allclose? ", np.allclose(MO_n8, MO))
 
 # There are still several possibilities to explore:
 # @inbounds, @simd, LinearAlgebra.LAPACK calls, Einsum.jl, Tullio.jl, ...
 # -
-
+# None of the above algorithms is $\mathcal{O}(N^8)$. `@tensor` factorizes the expression to achieve better performance. There is a small edge in doing the factorization manually. Factorized algorithms have similar timings, although it is clear that with `@tensor` is easier than with Julia's built-in `*`. To use the usual matrix multiplication with tensors we have to reshape and permute their dimensions, subtracting appeal to the simple `*` syntax.
 
