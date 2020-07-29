@@ -179,7 +179,7 @@ println("Number of basis functions: ", nbf)
 
 # Memory check for ERI tensor
 I_size = nbf^4 * 8.e-9
-print("\nSize of the ERI tensor will be $I_size GB.")
+println("\nSize of the ERI tensor will be $I_size GB.")
 memory_footprint = I_size * 1.5
 if I_size > numpy_memory
     psi4.core.clean()
