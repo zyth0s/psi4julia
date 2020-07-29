@@ -90,7 +90,7 @@ mints = psi4.core.MintsHelper(wfn.basisset())
 function psi4view(psi4matrix)
    # Assumes Float64 type, C ordering
    if !hasproperty(psi4matrix,:__array_interface__)
-      throw(ArgumentError("Input matrix cannot be accessed. Try assigning to a variable first"))
+      throw(ArgumentError("Input matrix cannot be accessed. Cannot be an rvalue"))
    end
    array_interface = psi4matrix.__array_interface__
    array_interface["data"][2] == false   || @warn "Not writable"
