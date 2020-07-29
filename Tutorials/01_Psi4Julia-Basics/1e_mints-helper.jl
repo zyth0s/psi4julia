@@ -81,7 +81,7 @@ mints = psi4.core.MintsHelper(wfn.basisset())
 # four indices of the ERI are p, q, r, s, then this element of the Psi4 Matrix can be accessed by first computing composite 
 # indices `pq = p * nbf + q` and `rs = r * nbf + s`, and then accessing element `A.get(pq,rs)`.  However, for convenience, 
 # the Julia view is a rank-4 tensor, and a particular ERI is more simply accessed like this:
-# ~~~python
+# ~~~julia
 # I = mints.ao_eri()
 # I = psi4view(I)
 # val = I[p,q,r,s]
@@ -119,7 +119,7 @@ end
 # scaling of many of the methods demonstrated here, we limit ourselves to small systems ($\sim50$ basis functions)
 # which should not require such egregious amounts of memory.  Additionally, we will employ a "memory check" to catch
 # any case which could potentially try to use more memory than is available:
-# ~~~python
+# ~~~julia
 # # Memory check for ERI tensor
 # I_size = nbf^4 * 8.e-9
 # printfmt("Size of the ERI tensor will be {:4.2f} GB.\n", I_size)

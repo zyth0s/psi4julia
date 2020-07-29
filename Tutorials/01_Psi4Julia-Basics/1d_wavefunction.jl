@@ -86,7 +86,7 @@ h2o_wfn = psi4.core.Wavefunction.build(h2o, psi4.core.get_global_option("basis")
 # calling any of the member functions of the `Wavefunction` class on our object.  For instance, the number of spin-up
 # ($\alpha$) electrons in our wavefuntion can be found using the [`Wavefunction.nalpha()`](http://psicode.org/psi4manual
 # /master/psi4api.html#psi4.core.Wavefunction.nalpha "Go to Documentation") function:  
-# ~~~python
+# ~~~julia
 # h2o_wfn.nalpha()
 # ~~~
 # Since the water molecule
@@ -106,9 +106,9 @@ println("Water has $(Int(2h2o_wfn.nalpha())) electrons, according to our wavefun
 # [`psi4.energy()`](http://psicode.org/psi4manual/master/api/psi4.driver.energy.html#psi4.driver.energy "Go to 
 # Documentation") is invoked with a particular quantum chemical method, like `'scf'`, `'mp2'`, or `'ccsd(t)`'.  To
 # return the wavefunction from that method, the additional argument `return_wfn=True` can be specified:
-# ~~~python
+# ~~~julia
 # # Returning a CCSD(T) wavefunction
-# energy, wfn = psi4.energy('ccsd(t)', return_wfn=True)
+# energy, wfn = psi4.energy("ccsd(t)", return_wfn=true)
 # ~~~
 # Then, both the energy and the wavefunction are returned.  Give it a try yourself, for the Hartree–Fock computation
 # in the cell below:
