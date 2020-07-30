@@ -19,8 +19,8 @@
 # +
 """Tutorial implementing a basic Hartree--Fock SCF program."""
 
-__authors__ = "D. Menendez, D. A. Sirianni"
-__credits__ = "D. Menendez, D. G. A. Smith"
+__authors__ = ["D. Menendez", "D. A. Sirianni"]
+__credits__ = ["D. Menendez", "D. G. A. Smith"]
 __email__   = "danielmail7@gmail.com"
 
 __copyright__ = "(c) 2014-2020, The Psi4Julia Developers"
