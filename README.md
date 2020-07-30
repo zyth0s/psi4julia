@@ -18,7 +18,7 @@
 ## This is a Julia version of psi4numpy.
 Progress:
 - [x] Tutorials 1 a-f
-- [x] Tutorials 3 a-c
+- [x] Tutorials 3 a-d
 
 ### Overview
 
