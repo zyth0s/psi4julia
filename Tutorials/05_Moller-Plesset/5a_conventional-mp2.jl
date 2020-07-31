@@ -115,7 +115,7 @@ __date__      = "2020-07-30"
 # So far, our discussion has used spin-orbitals instead of the more familiar spatial orbitals.  Indeed, significant speedups are achieved when using spatial orbitals.  Integrating out the spin variable $\omega$ from $E_0^{(2)}$ yields two expressions; one each for the interaction of particles with the same spin (SS) and opposite spin (OS):
 #
 # \begin{align}
-# E_{\rm 0,\,SS}^{(2)} = \sum_{ij}\sum_{ab}\frac{(ia\mid jb)[(ia\mid jb) - (ib\mid ja)]}{\epsilon_i - \epsilon_a + \epsilon_j - \epsilon_b},
+# E_{\rm 0,\,SS}^{(2)} = \sum_{ij}\sum_{ab}\frac{(ia\mid jb)[(ia\mid jb) - (ib\mid ja)]}{\epsilon_i - \epsilon_a + \epsilon_j - \epsilon_b}, \quad
 # E_{\rm 0,\,OS}^{(2)} = \sum_{ij}\sum_{ab}\frac{(ia\mid jb)(ia\mid jb)}{\epsilon_i - \epsilon_a + \epsilon_j - \epsilon_b},
 # \end{align}
 #
@@ -123,7 +123,7 @@ __date__      = "2020-07-30"
 #
 # ### Implementation of Conventional MP2
 #
-# Let's begin by importing Psi4 and NumPy, and setting memory and output file options:
+# Let's begin by importing Psi4, NumPy and TensorOperations, and setting memory and output file options:
 
 # +
 # ==> Import statements & Global Options <==
@@ -131,8 +131,6 @@ using PyCall: pyimport
 psi4 = pyimport("psi4")
 np   = pyimport("numpy") # used only to cast to Psi4 arrays
 using TensorOperations: @tensor
-#using LinearAlgebra: Diagonal, Hermitian, eigen, tr, norm, dot
-#using Printf: @printf
 
 psi4.set_memory(Int(2e9))
 numpy_memory = 2
@@ -153,6 +151,7 @@ symmetry c1
 
 psi4.set_options(Dict("basis"         => "6-31g",
                       "scf_type"      => "pk",
+                      "mp2_type"      => "conv",
                       "e_convergence" => 1e-8,
                       "d_convergence" => 1e-8))
 # -
@@ -173,7 +172,7 @@ nmo = scf_wfn.nmo()
 # Get orbital energies, cast into NumPy array, and separate occupied & virtual
 eps = np.asarray(scf_wfn.epsilon_a())
 e_ij = eps[1:ndocc]
-e_ab = eps[ndocc+1:end]
+e_ab = eps[ndocc+1:end];
 # -
 
 # Unlike the orbital information, Psi4 does not return the ERIs when it does a computation.  Fortunately, however, we can just build them again using the `psi4.core.MintsHelper()` class.  Recall that these integrals will be generated in the AO basis; before using them in the $E_0^{(2)}$ expression, we must transform them into the MO basis.  To do this, we first need to obtain the orbital coefficient matrix, **C**.  In the cell below, generate the ERIs for our molecule, get **C** from the SCF wavefunction, and obtain occupied- and virtual-orbital slices of **C** for future use. 
@@ -206,14 +205,14 @@ Cvirt = C[:, ndocc+1:end];
 #
 # $$(i\,a\mid j\,b) = C_{\mu i}C_{\nu a}(\mu\,\nu\mid|\,\lambda\,\sigma)C_{\lambda j}C_{\sigma b}$$
 #
-# Again, here we are using $i,\,j$ as occupied orbital indices and $a,\, b$ as virtual orbital indices.  We could carry out the above contraction all in one step using either `np.einsum()` or explicit loops:
+# Again, here we are using $i,\,j$ as occupied orbital indices and $a,\, b$ as virtual orbital indices.  We could carry out the above contraction all in one step using either `@tensor` or explicit loops:
 #
 # ~~~julia
 # # Naive Algorithm for ERI Transformation
 # @tensor I_mo[i,a,j,b] := Cocc[p,i] * Cvirt[q,a] * I[p,q,r,s] * Cocc[r,j] * Cvirt[s,b]
 # ~~~
 #
-# Notice that the transformation from AO index to occupied (virtual) MO index requires only the occupied (virtual) block of the **C** matrix; this allows for computational savings in large basis sets, where the virtual space can be very large.  This algorithm, while simple, has the distinct disadvantage of horrendous scaling.  Examining the contraction more closely, we see that there are 8 unique indices, and thus the step above scales as ${\cal O}(N^8)$.  With this algorithm, a twofold increase of the number of MO's would result in $2^8 = 256\times$ expense to perform.  We can, however, refactor the above contraction such that
+# Notice that the transformation from AO index to occupied (virtual) MO index requires only the occupied (virtual) block of the **C** matrix; this allows for computational savings in large basis sets, where the virtual space can be very large.  This algorithm, while efficient with `@tensor`, has horrendous scaling if the search of an optimal contraction fails.  We will enforce a better contraction. Examining the contraction more closely, we see that there are 8 unique indices, and thus the step above scales as ${\cal O}(N^8)$.  With this algorithm, a twofold increase of the number of MO's would result in $2^8 = 256\times$ expense to perform.  We can, however, refactor the above contraction such that
 #
 # $$(i\,a\mid j\,b) = \left[C_{\mu i}\left[C_{\nu a}\left[C_{\lambda j}\left[C_{\sigma b}(\mu\,\nu\mid|\,\lambda\,\sigma)\right]\right]\right]\right],$$
 #
@@ -223,8 +222,8 @@ Cvirt = C[:, ndocc+1:end];
 I_mo = @tensor begin
    I_mo[i,q,r,s] := Cocc[p,i]     * I[p,q,r,s]
    I_mo[i,a,r,s] := Cvirt[q,a]    * I_mo[i,q,r,s]
-   I_mo[i,a,j,s] := I_mo[i,a,r,s] * Cocc[r,j]
-   I_mo[i,a,j,b] := I_mo[i,a,j,s] * Cvirt[s,b]
+   I_mo[i,a,j,s] :=                 I_mo[i,a,r,s] * Cocc[r,j]
+   I_mo[i,a,j,b] :=                 I_mo[i,a,j,s] * Cvirt[s,b]
 end
 nothing
 
@@ -254,8 +253,7 @@ end
 MP2_E = scf_e + mp2_corr
 
 # ==> Compare to Psi4 <==
-#psi4.compare_values(psi4.energy("mp2"), MP2_E, 6, "MP2 Energy")
-psi4.compare_values(psi4.energy("mp2"), MP2_E, 5, "MP2 Energy")
+psi4.compare_values(psi4.energy("mp2"), MP2_E, 6, "MP2 Energy")
 # -
 
 # In this method it is very clear what is going on and is easy to program. Julia has the distinct advantage loops are as fast as the same block written in a compiled language like C, C++, or Fortran. 
@@ -263,39 +261,46 @@ psi4.compare_values(psi4.energy("mp2"), MP2_E, 5, "MP2 Energy")
 # However, we will provide an alternative formulation using tensor contractions. It should be clear how to contract the four-index integrals $(i\,a\mid j\,b)$ and $(i\,a\mid j\,b)$ with one another, but what about the energy eigenvalues $\epsilon$?  We can use a Julia trick called *broadcasting* to construct a four-index array of all possible energy denominators, which can then be contracted with the full I_mo arrays.  To do this, we'll use the function `reshape()`:
 # ~~~julia
 # # Prepare 4d energy denominator array
-# e_denom  = reshape(e_ij, :, 1, 1, 1) # Diagonal of 4d array are occupied orbital energies
-# e_denom -= reshape(e_ab, :, 1, 1)    # all combinations of (e_ij - e_ab)
-# e_denom += reshape(e_ij, :, 1)       # all combinations of [(e_ij - e_ab) + e_ij]
-# e_denom -= e_ab                      # All combinations of full denominator
-# e_denom  = inv(e_denom)              # Take reciprocal for contracting with numerator
+# e_denom  = reshape(e_ij,  1, 1, 1, :)      # Diagonal of 4d array are occupied orbital energies
+# e_denom -= reshape(e_ab', 1, 1, :)         # all combinations of (e_ij - e_ab)
+# e_denom += e_ij                            # all combinations of [(e_ij - e_ab) + e_ij]
+# e_denom -= e_ab'                           # All combinations of full denominator
+# e_denom  = premutedims(e_denom, (1,2,4,3)) # permute 3rd and 4th dims to have (nocc,nvirt,nocc,nvirt) shape
+# e_denom  = inv.(e_denom)                   # Take reciprocal for contracting with numerator
 # ~~~
-# In the cell below, compute the energy denominator using `reshape()` and contract this array with the four-index ERIs to compute the same-spin and opposite-spin MP2 correction using `@einsum` (it is not a proper tensor operation). Then, add these quantities to the SCF energy computed above to obtain the total MP2 energy.
+# In the cell below, compute the energy denominator using `reshape()` and contract this array with the four-index ERIs to compute the same-spin and opposite-spin MP2 correction using `sum()`. Then, add these quantities to the SCF energy computed above to obtain the total MP2 energy.
 #
-# Hint: For the opposite-spin correlation, use `np.swapaxes()` to obtain the correct ordering of the indices in the exchange integral.
+# Hint: For the opposite-spin correlation, use `permutedims()` to obtain the correct ordering of the indices in the exchange integral.
 
 # +
 #using Einsum: @einsum
 # ==> Compute MP2 Correlation & MP2 Energy <==
 # Compute energy denominator array
-#e_denom = 1 / (e_ij.reshape(-1, 1, 1, 1) - e_ab.reshape(-1, 1, 1) + e_ij.reshape(-1, 1) - e_ab)
-#e_denom = inv(reshape(e_ij, :, 1, 1, 1) .- reshape(e_ab, :, 1, 1) .+ reshape(e_ij, :, 1) .- e_ab)
-#e_denom = reshape(e_ij,1,1,1,:) .- (reshape(e_ab',1,1,:) .+ (e_ij .- e_ab')) 
+e_denom = reshape(e_ij,1,1,1,:) .- reshape(e_ab',1,1,:) .+ (e_ij .- e_ab')
+e_denom = permutedims(e_denom, (1,2,4,3)) # 3 ↔ 4
+e_denom = inv.(e_denom)
 
-# Compute SS & OS MP2 Correlation with Einsum
-#mp2_os_corr = np.einsum('iajb,iajb,iajb->', I_mo, I_mo, e_denom, optimize=True)
-#mp2_ss_corr = np.einsum('iajb,iajb,iajb->', I_mo, I_mo - I_mo.swapaxes(1,3), e_denom, optimize=True)
-# trace?
-#@einsum mp2_os_corr = I_mo[i,a,j,b] * I_mo[i,a,j,b] * e_denom[i,a,j,b]
-#I_mo_swap = permutedims(I_mo,(3,2,1,4)) # 1 ↔ 3
-#@einsum mp2_ss_corr = I_mo[i,a,j,b] * (I_mo - I_mo_swap)[i,a,j,b] * e_denom[i,a,j,b]
+# check
+#using Test
+#nvirt = nmo - ndocc
+#for i in 1:ndocc, a in 1:nvirt, j in 1:ndocc, b in 1:nvirt
+#    @test e_denom[i,a,j,b] ≈ 1 / (e_ij[i] + e_ij[j] - e_ab[a] - e_ab[b])
+#end
+
+# Compute SS & OS MP2 Correlation with sum()
+bctd_mp2_os_corr = sum(I_mo .* I_mo .* e_denom)
+I_mo_swap = permutedims(I_mo,(3,2,1,4)) # 1 ↔ 3
+bctd_mp2_ss_corr = sum(I_mo .* (I_mo .- I_mo_swap) .* e_denom)
+
+# Compare broadcasted and loop MP2
+@assert bctd_mp2_os_corr + bctd_mp2_ss_corr ≈ mp2_corr
 
 # Total MP2 Energy
-#MP2_E = scf_e + mp2_os_corr + mp2_ss_corr
+MP2_E = scf_e + bctd_mp2_os_corr + bctd_mp2_ss_corr
 # -
 
 # ==> Compare to Psi4 <==
-#psi4.compare_values(psi4.energy("mp2"), MP2_E, 6, "MP2 Energy")
-psi4.compare_values(psi4.energy("mp2"), MP2_E, 5, "MP2 Energy")
+psi4.compare_values(psi4.energy("mp2"), MP2_E, 6, "MP2 Energy")
 
 # ## References
 #
