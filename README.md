@@ -20,7 +20,7 @@ Progress:
 - [x] Tutorials 1 a-f
 - [x] Tutorials 3 a-d
 - [x] Tutorials 5 a-b
-- [x] Tutorials 8 a
+- [x] Tutorials 8 a-b
 
 ### Overview
 

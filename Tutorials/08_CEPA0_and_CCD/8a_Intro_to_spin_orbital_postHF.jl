@@ -237,7 +237,6 @@ nothing
 n = [CartesianIndex()]
 o = [p ≤ nocc for p in 1:nso]
 v = [p > nocc for p in 1:nso]
-v = vcat(falses(nocc),  trues(nvirt))
 e_denom = inv.(-eps[v, n, n, n] .- eps[n, v, n, n] .+ eps[n, n, o, n] .+ eps[n, n, n, o]);
 
 # check
