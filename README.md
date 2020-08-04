@@ -17,13 +17,18 @@
 
 ## This is a Julia version of psi4numpy.
 Progress:
-- [x] Tutorials  1 a-f
-- [x] Tutorials  3 a-d
-- [x] Tutorials  5 a-b
-- [x] Tutorials  8 a-b
-- [x] Tutorials  9 a
-- [x] Tutorials 10 a
-- [x] Tutorials 11 a
+- [x] Tutorials  1 a-f Psi4Julia Basics
+- [x] Tutorials  3 a-d Hartree-Fock
+- [ ] Tutorials  4     Density Functional Theory
+- [x] Tutorials  5 a-b Moller Plesset
+- [ ] Tutorials  6     Molecular Properties
+- [ ] Tutorials  7     SAPT
+- [x] Tutorials  8 a-b CEPA0 & CCD
+- [x] Tutorials  9 a   CI
+- [x] Tutorials 10 a   Orbital Optimized MP2
+- [x] Tutorials 11 a   Integrals with Obara-Saika scheme
+- [ ] Tutorials 12     MD
+- [ ] Tutorials 13     Geometry Optimization
 
 ### Overview
 
