@@ -5,13 +5,13 @@ These tutorials use the Jupyter notebook environment to offer an interactive,
 step-by-step introduction to several important concepts in quantum chemistry.
 Their goal is to provide the reader with the necessary background to
 effectively program quantum chemical methods using the machinery provided by
-Psi4 and NumPy/SciPy.  
+Psi4 and Julia's ecosystem.  
 
 Below is a list of the available interactive tutorials, grouped by module:
 
-1. Psi4NumPy Basics
+1. Psi4Julia Basics
     * Molecule: Overview of the Molecule class and geometry specification in Psi4
-    * Psi4-NumPy Data Sharing: Describes the integration of Psi4 Matrix and NumPy array objects
+    * Psi4-Julia Data Sharing: Describes the integration of Psi4 Matrix and Julia array objects
     * Wavefunction: Building, passing, and using wavefunction objects from Psi4
     * MintsHelper: Generating one- and two-electron integrals with Psi4
     * Tensor Manipulation: Overview of commonly used tensor engines throughout Psi4NumPy 
@@ -46,21 +46,31 @@ Below is a list of the available interactive tutorials, grouped by module:
 
 Note: These tutorials are under active construction.
 
+Julia scripts have the extension `.jl`. They be executed from the command line
+```
+julia example.jl
+```
+or, better, from Julia's REPL (avoids recompilation)
+```
+julia
+julia> include("example.jl")
+```
+
 Jupyter notebooks have the file extension `.ipynb`.  In order to use these
 tutorials, Jupyter must first be installed.  Jupyter is available with the
-[Anaconda](https://www.continuum.io/downloads) python distribution.  Once
+[Anaconda](https://www.continuum.io/downloads) Python distribution.  Once
 installed, a Jupyter notebook `example.ipynb` may be opened from the command
 line with
 ```
 jupyter-notebook example.ipynb
 ```
 
-These modules and the tutorials contained therein make use of advanced
-scientific Python programming with NumPy/SciPy, and assume familiarity with
-these packages to focus more closely on the intricacies of programming quantum
-chemistry.  Before jumping into Module 1, it is therefore advantageous to at
-the very least skim through the [NumPy quickstart tutorial](https://docs.scipy.org/doc/numpy-dev/user/quickstart.html) and 
-[SciPy tutorial](https://docs.scipy.org/doc/scipy/reference/tutorial/index.html).  For a
-more thorough introduction to these two packages, please refer to the [SciPy
-Lectures](http://www.scipy-lectures.org/).  Good luck and happy
+These modules and the tutorials contained therein assume familiarity
+scientific programming and some packages to focus more closely on
+the intricacies of programming quantum chemistry.  Before jumping 
+into Module 1, it is therefore advantageous to at
+the very least skim through the [Julia learning resources](https://julialang.org/learning/) and 
+[LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/).  For an
+introduction to TensorOperations package, please refer to the 
+[TensorOperations.jl](https://jutho.github.io/TensorOperations.jl/stable/indexnotation/).  Good luck and happy
 programming!
