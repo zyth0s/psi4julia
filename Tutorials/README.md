@@ -46,13 +46,14 @@ Below is a list of the available interactive tutorials, grouped by module:
 
 Note: These tutorials are under active construction.
 
-Julia scripts have the extension `.jl`. They be executed from the command line
+Julia scripts have the extension `.jl`. They can be executed from the command line
 ```
 julia example.jl
 ```
 or, better, from Julia's REPL (avoids recompilation)
 ```
 julia
+[...]
 julia> include("example.jl")
 ```
 
@@ -65,12 +66,12 @@ line with
 jupyter-notebook example.ipynb
 ```
 
-These modules and the tutorials contained therein assume familiarity
-scientific programming and some packages to focus more closely on
+These modules and the tutorials contained therein assume familiarity with
+scientific programming and Julia packages to focus more closely on
 the intricacies of programming quantum chemistry.  Before jumping 
 into Module 1, it is therefore advantageous to at
 the very least skim through the [Julia learning resources](https://julialang.org/learning/) and 
-[LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/).  For an
+[LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/) page.  For an
 introduction to TensorOperations package, please refer to the 
-[TensorOperations.jl](https://jutho.github.io/TensorOperations.jl/stable/indexnotation/).  Good luck and happy
+[TensorOperations.jl](https://jutho.github.io/TensorOperations.jl/stable/indexnotation/) documentation.  Good luck and happy
 programming!
