@@ -121,11 +121,11 @@ please see our [contributor guidelines](https://github.com/psi4/psi4numpy/blob/m
         ```
 
 New users can follow the
-[Getting Started](https://github.com/psi4/psi4numpy/blob/master/Tutorials/01_Psi4NumPy-Basics/1a_Getting-Started.ipynb)
+[Getting Started](https://github.com/zyth0s/psi4julia/blob/master/Tutorials/01_Psi4Julia-Basics/1a_Getting-Started.ipynb)
 notebook or the [PsiAPI documentation](http://psicode.org/psi4manual/master/psiapi.html) for an introduction to running Psi4 within the PsiAPI.
 
-A tutorial that covers the basics of NumPy can be found
-[here](http://wiki.scipy.org/Tentative_NumPy_Tutorial).
+An express tutorial that covers the basics of Julia can be found
+[here](https://github.com/bkamins/The-Julia-Express).
 
 ### Repository Organization
 
@@ -140,16 +140,15 @@ chemistry methods.
 Reference implementations are organized into top-level directories
 corresponding to the over-arching theory upon which each method is based, i.e.,
 both EOM-CCSD and TD-CCSD are contained in the
-[Coupled-Cluster](https://github.com/psi4/psi4numpy/tree/master/Coupled-Cluster)
+[Coupled-Cluster](https://github.com/zyth0s/psi4julia/tree/master/Coupled-Cluster)
 directory.  All interactive tutorials are contained in the top-level directory
-[Tutorials](https://github.com/psi4/psi4numpy/tree/master/Tutorials).  These
+[Tutorials](https://github.com/zyth0s/psi4julia/tree/master/Tutorials).  These
 tutorials are organized in logical order of progression, which is enumerated in
 detail
-[here](https://github.com/psi4/psi4numpy/tree/master/Tutorials#interactive-tutorials).
+[here](https://github.com/zyth0s/psi4julia/tree/master/Tutorials#interactive-tutorials).
 
 ### Psi4 v1.1 (c. May 2017)
 This repostitory has recently been updated to be compatible with Psi4 version 1.1.
-Please see the [v0.1-beta tag](https://github.com/psi4/psi4numpy/tree/v0.1-beta) for a Psi4 v1.0 compliant Psi4NumPy version. 
 
 ### Psi4 v1.2 (c. May 2018)
 This reposititory is fully compatible with the upcoming Psi4 version 1.2.
