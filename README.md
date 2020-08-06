@@ -19,7 +19,7 @@
 Progress:
 - [x] Tutorials  1 a-f Psi4Julia Basics
 - [x] Tutorials  3 a-d Hartree-Fock
-- [x] Tutorials  4 a-d Density Functional Theory
+- [x] Tutorials  4 a-e Density Functional Theory
 - [x] Tutorials  5 a-b Moller Plesset
 - [ ] Tutorials  6     Molecular Properties
 - [ ] Tutorials  7     SAPT
