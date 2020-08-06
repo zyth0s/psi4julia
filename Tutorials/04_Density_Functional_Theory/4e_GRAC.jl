@@ -98,12 +98,11 @@ function one_electron_radial(matrices, Vpot)
         x = np.array(grid.x())
         y = np.array(grid.y())
         z = np.array(grid.z())
-        #npoints = z.shape[1]
         npoints = size(z)[1]
 
         # Get radial information
         R = @. (x^2 + y^2 + z^2)^0.5
-        push!(Rlist,R)
+        push!(Rlist, R)
         
         # Loop over and compute the density for each matrix
         for (num, mat) in enumerate(matrices)
@@ -114,14 +113,15 @@ function one_electron_radial(matrices, Vpot)
     end
        
     # Stack R
-    Rlist = np.hstack(Rlist)
+    Rlist = vcat(Rlist...)
     
     # Get the R unique and sort
-    unique, uidx = np.unique(Rlist, return_index=true)
-    Rlist = Rlist[uidx .+ 1]
+    #uidx = findfirst.(isequal.(unique(Rlist)), [Rlist])
+    uidx = indexin(sort(unique(Rlist)), Rlist)
+    Rlist = Rlist[uidx]
     
-    # Numpy is magic, it would be worthwhile to consider excatly what this does
-    results = [np.hstack(x)[uidx .+ 1] for x in results]
+    # Julia does magic, it would be worthwhile to consider what this does exactly
+    results = [vcat(x...)[uidx] for x in results]
 
     Rlist, results
 end
@@ -214,7 +214,7 @@ function compute_V_GRAC(D, Vpot)
     Varr = zeros(nbf, nbf)
 
     points_func = Vpot.properties()[1]
-    superfunc = Vpot.functional()
+    superfunc   = Vpot.functional()
     
     total_e = 0.0
     
@@ -223,12 +223,10 @@ function compute_V_GRAC(D, Vpot)
         # Grid data
         grid = Vpot.get_block(x-1)
         w = np.array(grid.w())
-        #npoints = w.shape[1]
         npoints = size(w)[1]
 
         points_func.compute_points(grid)
         lpos = np.array(grid.functions_local_to_global()) .+ 1
-        #nfunctions = lpos.shape[1]
         nfunctions = size(lpos)[1]
         
         phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:nfunctions]
@@ -237,20 +235,19 @@ function compute_V_GRAC(D, Vpot)
         gamma = np.array(points_func.point_values()["GAMMA_AA"])[1:npoints]
 
         grac_x = @. (gamma^0.5) / (rho^(4.0/3.0))
-        #grac_fx = 1.0 ./ (1.0 .+ np.exp(-grac_alpha .* (grac_x .- grac_beta)))
-        grac_fx = @. 1.0 / (1.0 + np.exp(-grac_alpha * (grac_x - grac_beta)))
+        grac_fx = @. 1.0 / (1.0 + exp(-grac_alpha * (grac_x - grac_beta)))
         
         ret = superfunc.compute_functional(points_func.point_values(), -1)
         lbret = lb94_func.compute_functional(points_func.point_values(), -1)
         
-        #total_e += np.vdot(np.array(ret["V"])[1:npoints], w)
         total_e += dot(np.array(ret["V"])[1:npoints], w)
         
         v_rho_a  = @. ( 1 - grac_fx ) * (np.array(ret["V_RHO_A"])[1:npoints] - grac_shift)
         v_rho_a += @. grac_fx * np.array(lbret["V_RHO_A"])[1:npoints]
         v_rho_a .*= 0.5 .* w
         
-        Vtmp = np.einsum("pb,p,pa->ab", phi, v_rho_a, phi, optimize=true)
+        # Vtmp[ab] = ϕ[pb] Vρ_a[p] ϕ[pa]
+        Vtmp = phi' * (v_rho_a .* phi)
 
         # GGA
         rho_x = np.array(points_func.point_values()["RHO_AX"])[1:npoints]
@@ -263,12 +260,11 @@ function compute_V_GRAC(D, Vpot)
         
         v_gamma  = @. (1 - grac_fx) * np.array(ret["V_GAMMA_AA"])[1:npoints]
         v_gamma .*= 2.0 .* w
-        Vtmp += np.einsum("pb,p,p,pa->ab", phi, v_gamma, rho_x, phi_x, optimize=true)
-        Vtmp += np.einsum("pb,p,p,pa->ab", phi, v_gamma, rho_y, phi_y, optimize=true)
-        Vtmp += np.einsum("pb,p,p,pa->ab", phi, v_gamma, rho_z, phi_z, optimize=true)
+        # Vtmp[ab] += ϕ[pb] v_gamma[p] ∇ₓρ[p] ∇ₓϕ[pa] ∀ x,y,z
+        Vtmp += phi' * (v_gamma .* rho_x .* phi_x)
+        Vtmp += phi' * (v_gamma .* rho_y .* phi_y)
+        Vtmp += phi' * (v_gamma .* rho_z .* phi_z)
 
-        
-        #Varr[(lpos[:, None], lpos)] += Vtmp + Vtmp.T
         Varr[lpos, lpos] += Vtmp + Vtmp'
 
     end
@@ -282,14 +278,13 @@ grac_e, grac_data = ks_solver("PBE0", mol, options, compute_V_GRAC)
 # We can now check against the Psi4 reference implementation. Note that we set the GRAC shift on either side of the computation so that we do not contaminate other computations.
 
 psi4.set_options(Dict("dft_grac_shift" => grac_shift))
-print(psi4.energy("PBE0"))
+println("Psi4 PBE0 energy ", psi4.energy("PBE0"))
 psi4.set_options(Dict("dft_grac_shift" => 0.0))
 
 # ## 3. Inspecting the outcome
 # Now that we applied the GRAC shift we can observe the density and see how well we do.
 
 # +
-#grac_ip = -1 * grac_data["eigenvalues"].np[dft_wfn.nalpha()-1] * psi4.constants.hartree2ev
 grac_ip = -1 * grac_data["eigenvalues"].np[dft_wfn.nalpha()] * psi4.constants.hartree2ev
 
 println("Neon Ionization Potential (eV)")
@@ -303,7 +298,9 @@ printfmt("NIST    {:10.4f}\n", 21.5645)
 # We observe that our ionization potenital is now much closer to the correct ionization potenital and while the density is not perfect, it is much closer to the CISD density.
 
 R, data = one_electron_radial([scf_wfn.Da(), dft_wfn.Da(), grac_data["Da"], ci_wfn.Da()], Vpot)
-data_dict = Dict("SCF"=> data[1], "DFT"=> data[2], "DFT-AC"=> data[3])
+data_dict = Dict("SCF"=> data[1],
+                 "DFT"=> data[2],
+                 "DFT-AC"=> data[3])
 plot_scatter_ratio(data_dict, data[4], R)
 
 # Refs:
