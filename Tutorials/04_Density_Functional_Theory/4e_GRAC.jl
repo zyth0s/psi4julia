@@ -98,7 +98,7 @@ function one_electron_radial(matrices, Vpot)
         x = np.array(grid.x())
         y = np.array(grid.y())
         z = np.array(grid.z())
-        npoints = size(z)[1]
+        npoints = size(z,1)
 
         # Get radial information
         R = @. (x^2 + y^2 + z^2)^0.5
@@ -223,11 +223,11 @@ function compute_V_GRAC(D, Vpot)
         # Grid data
         grid = Vpot.get_block(x-1)
         w = np.array(grid.w())
-        npoints = size(w)[1]
+        npoints = size(w,1)
 
         points_func.compute_points(grid)
         lpos = np.array(grid.functions_local_to_global()) .+ 1
-        nfunctions = size(lpos)[1]
+        nfunctions = size(lpos,1)
         
         phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:nfunctions]
         

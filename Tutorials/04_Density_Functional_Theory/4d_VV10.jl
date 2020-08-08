@@ -131,7 +131,7 @@ function compute_vv10(D, Vpot)
         l_x = np.array(l_grid.x())
         l_y = np.array(l_grid.y())
         l_z = np.array(l_grid.z())
-        l_npoints = size(l_w)[1]
+        l_npoints = size(l_w,1)
 
         points_func.compute_points(l_grid)
 
@@ -161,7 +161,7 @@ function compute_vv10(D, Vpot)
             r_x = np.array(r_grid.x())
             r_y = np.array(r_grid.y())
             r_z = np.array(r_grid.z())
-            r_npoints = size(r_w)[1]
+            r_npoints = size(r_w,1)
 
             points_func.compute_points(r_grid)
 
@@ -207,7 +207,7 @@ function compute_vv10(D, Vpot)
         # Recompute to l_grid
         lpos = np.array(l_grid.functions_local_to_global()) .+ 1
         points_func.compute_points(l_grid)
-        nfunctions = size(lpos)[1]
+        nfunctions = size(lpos,1)
         
         # Integrate the LDA and GGA quantities
         phi = np.array(points_func.basis_values()["PHI"])[1:l_npoints, 1:nfunctions]

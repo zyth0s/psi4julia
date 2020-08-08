@@ -183,11 +183,11 @@ xc_e, V = let xc_e = xc_e, rho=rho
        w = np.array(block.w())
 
        # Compute phi!
-       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos)[1]]
+       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos,1)]
        
-       phi_x = np.array(points_func.basis_values()["PHI_X"])[1:npoints, 1:size(lpos)[1]]
-       phi_y = np.array(points_func.basis_values()["PHI_Y"])[1:npoints, 1:size(lpos)[1]]
-       phi_z = np.array(points_func.basis_values()["PHI_Z"])[1:npoints, 1:size(lpos)[1]]
+       phi_x = np.array(points_func.basis_values()["PHI_X"])[1:npoints, 1:size(lpos,1)]
+       phi_y = np.array(points_func.basis_values()["PHI_Y"])[1:npoints, 1:size(lpos,1)]
+       phi_z = np.array(points_func.basis_values()["PHI_Z"])[1:npoints, 1:size(lpos,1)]
        
        # Build a local slice of D
        lD = D[lpos, lpos]
@@ -305,11 +305,11 @@ xc_e, V = let xc_e = xc_e, rho=rho
        w = np.array(block.w())
 
        # Compute phi!
-       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos)[1]]
+       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos,1)]
        
-       phi_x = np.array(points_func.basis_values()["PHI_X"])[1:npoints, 1:size(lpos)[1]]
-       phi_y = np.array(points_func.basis_values()["PHI_Y"])[1:npoints, 1:size(lpos)[1]]
-       phi_z = np.array(points_func.basis_values()["PHI_Z"])[1:npoints, 1:size(lpos)[1]]
+       phi_x = np.array(points_func.basis_values()["PHI_X"])[1:npoints, 1:size(lpos,1)]
+       phi_y = np.array(points_func.basis_values()["PHI_Y"])[1:npoints, 1:size(lpos,1)]
+       phi_z = np.array(points_func.basis_values()["PHI_Z"])[1:npoints, 1:size(lpos,1)]
        
        # Build a local slice of D
        lD = D[lpos, lpos]

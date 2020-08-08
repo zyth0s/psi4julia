@@ -69,7 +69,7 @@ println("Local basis function mapping")
 display(lpos)
 
 # Copmute phi, note the number of points and function per phi changes.
-phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos)[1]]
+phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos,1)]
 println("\nPhi Matrix")
 display(phi)
 # -
@@ -111,7 +111,7 @@ xc_e, V = let xc_e = 0.0, rho = rho
        w = np.array(block.w())
 
        # Compute ϕᴾμ!
-       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos)[1]]
+       phi = np.array(points_func.basis_values()["PHI"])[1:npoints, 1:size(lpos,1)]
        
        # Build a local slice of D
        lD = D[lpos,lpos]
